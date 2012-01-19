@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# Copyright © 2011-2012 by Tanner Swett.  All rights reserved.
+# This file may be redistributed and used according to the BSD 2-clause license,
+# as it appears in the file COPYING.
+
 from __future__ import division
 
 import math
