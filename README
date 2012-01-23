@@ -1,0 +1,5 @@
+Smokefly is a game written in Python.  Its user interface uses Pygame; if you do not have Pygame installed, please install it.  To run Smokefly, run its main module, Smokefly.py.
+
+Currently, Smokefly does not have version numbers.  It doesn't have saved games, either, but if it did, saved games from one version wouldn't work in future versions.
+
+Smokefly is currently developed entirely by Tanner Swett <swettt@mail.gvsu.edu>.  Its IRC channel is #smokefly on irc.freenode.net.
