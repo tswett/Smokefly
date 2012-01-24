@@ -88,10 +88,6 @@ class Session:
 class Viewport:
     # My instances represent rectangular regions within Landscapes.
 
-    # TODO: give each Viewport a Landscape as an instance variable, and move all
-    # the code pertaining to the interaction between Viewports and Landscapes
-    # into one of these two classes.
-
     def __init__(self, landscape, tile_width, tile_height, width, height):
         self.scape = landscape
         self.tile_width, self.tile_height = tile_width, tile_height
