@@ -12,7 +12,26 @@ BLACK = 0, 0, 0
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
+class Application:
+    # My instances represent instances of the application itself.
+
+    def __init__(self):
+        self.session = Session()
+
+        pygame.init()
+        self.screen = pygame.display.set_mode(VIEW_SIZE)
+
+        landscape = session.get_scape
+        self.port = Viewport(landscape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
+
+        while 1:
+            self.port.draw_on(self.screen)
+            self.session.tick()
+            pygame.time.wait(50)
+
 class Landscape:
+    # My instances are landscapes or "maps" within a Smokefly universe.
+
     def __init__(self):
         self.lushness = {}
 
@@ -26,20 +45,21 @@ class Landscape:
             return self.lushness[spot]
 
 class Session:
+    # My instances are instances of the game itself.  Conceptually, a "saved
+    # game" consists of one Session.
+
     def __init__(self):
         self.scape = Landscape()
-        self.port = Viewport(TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
+        self.port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
 
-        pygame.init()
-        self.screen = pygame.display.set_mode(VIEW_SIZE)
-        self.event_loop(force_draw = True)
+        self.player_x, self.player_y = 0, 0
 
-        while 1:
-            self.event_loop()
+    def tick(self, force_draw = False):
+        # TODO: move the drawing logic to draw_on()
 
-    def event_loop(self, force_draw = False):
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
+                # TODO: this doesn't belong here
 
         keys = pygame.key.get_pressed()
         move_x, move_y = 0, 0
@@ -53,30 +73,39 @@ class Session:
         if keys[pygame.K_DOWN]:
             move_y = move_y + 5
 
-        if (move_x, move_y) != (0, 0) or force_draw:
-            self.port.move(move_x, move_y)
-            player_x, player_y = self.port.get_pos()
-            tiles = self.port.visible_landscape_squares()
+        self.move_player(move_x, move_y)
 
-            for (x, y) in tiles:
-                tile_left, tile_top = TILE_WIDTH * x - player_x + (VIEW_WIDTH // 2), TILE_HEIGHT * y - player_y + (VIEW_HEIGHT // 2)
-                pygame.draw.rect(self.screen, (0, 255*self.scape.get_lushness((x, y)), 0), (tile_left, tile_top, TILE_WIDTH, TILE_HEIGHT))
 
-            pygame.display.update()
 
-        pygame.time.wait(50)
+    def get_landscape(self):
+        return self.scape
+
+    def move_player(self, dx, dy):
+        self.player_x += dx
+        self.player_y += dy
 
 class Viewport:
-    def __init__(self, tile_width, tile_height, width, height):
+    # My instances represent rectangular regions within Landscapes.
+
+    # TODO: give each Viewport a Landscape as an instance variable, and move all
+    # the code pertaining to the interaction between Viewports and Landscapes
+    # into one of these two classes.
+
+    def __init__(self, landscape, tile_width, tile_height, width, height):
+        self.scape = landscape
         self.tile_width, self.tile_height = tile_width, tile_height
         self.width, self.height = width, height
         self.x, self.y = 0, 0
+
     def get_pos(self):
         return self.x, self.y
+
     def set_pos(self, x, y):
         self.x, self.y = x, y
+
     def move(self, move_x, move_y):
         self.x, self.y = self.x + move_x, self.y + move_y
+
     def visible_landscape_squares(self):
         # Return a list of all landscape squares visible in the viewport.  A
         # landscape tile with integer coordinate x is considered to cover the
@@ -91,5 +120,15 @@ class Viewport:
         coord_bottom = int(math.floor(coord_y + coord_height / 2))
 
         return [(x,y) for x in range(coord_left, coord_right+1) for y in range(coord_top, coord_bottom+1)]
+
+    def draw_on(self, screen):
+        # TODO: write this
+        tiles = self.port.visible_landscape_squares()
+
+        for (x, y) in tiles:
+            tile_left, tile_top = TILE_WIDTH * x - player_x + (VIEW_WIDTH // 2), TILE_HEIGHT * y - player_y + (VIEW_HEIGHT // 2)
+            pygame.draw.rect(screen, (0, 255*self.scape.get_lushness((x, y)), 0), (tile_left, tile_top, TILE_WIDTH, TILE_HEIGHT))
+
+        pygame.display.update()
 
 Session()
