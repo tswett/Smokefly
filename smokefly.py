@@ -14,7 +14,7 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
-MAIN_MENU = False
+MAIN_MENU = True
 
 class Application:
     # My instances represent instances of the application itself.
