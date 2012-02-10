@@ -43,7 +43,11 @@ class Application:
             self.screen.blit(courier_new_14.render('Exit', True, fgcolor, bgcolor), (20, 40))
             pygame.display.update()
 
-            pygame.time.wait(2000) # TODO: make this actually a menu, not just a splash screen
+            # wait until the user presses a key
+            while pygame.event.wait().type != pygame.KEYDOWN:
+                pass
+
+            # TODO: make this actually a menu, not just a splash screen
 
         self.session.main_interface(self.screen)
 
