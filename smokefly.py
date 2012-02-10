@@ -21,15 +21,10 @@ class Application:
         pygame.init()
         self.screen = pygame.display.set_mode(VIEW_SIZE)
 
-        landscape = self.session.get_landscape()
-        self.port = Viewport(landscape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
+        self.main_menu()
 
-        while 1:
-            player_x, player_y = self.session.get_player()
-            self.port.center_on(player_x, player_y)
-            self.port.draw_on(self.screen)
-            self.session.tick()
-            pygame.time.wait(50)
+    def main_menu(self):
+        self.session.main_interface(self.screen)
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
@@ -84,6 +79,15 @@ class Session:
 
     def get_player(self):
         return self.player_x, self.player_y
+
+    def main_interface(self, screen):
+        port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
+
+        while 1:
+            port.center_on(self.player_x, self.player_y)
+            port.draw_on(screen)
+            self.tick()
+            pygame.time.wait(50)
 
 class Viewport:
     # My instances represent rectangular regions within Landscapes.
