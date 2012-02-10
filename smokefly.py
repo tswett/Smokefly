@@ -41,15 +41,30 @@ class Application:
 
             self.screen.blit(menu_font.render('Play', True, fgcolor, bgcolor), (20, 20))
             self.screen.blit(menu_font.render('Exit', True, fgcolor, bgcolor), (20, 40))
-            pygame.display.update()
 
-            # wait until the user presses a key
-            while pygame.event.wait().type != pygame.KEYDOWN:
-                pass
+            menu_pos = 0
 
-            # TODO: make this actually a menu, not just a splash screen
+            while True:
+                pygame.draw.polygon(self.screen, bgcolor, [(10, 40 - 20*menu_pos), (15, 45 - 20*menu_pos), (10, 50 - 20*menu_pos)])
+                # The above line is awful and should be shot.
+                pygame.draw.polygon(self.screen, fgcolor, [(10, 20 + 20*menu_pos), (15, 25 + 20*menu_pos), (10, 30 + 20*menu_pos)])
+                pygame.display.update()
 
-        self.session.main_interface(self.screen)
+                event = pygame.event.wait()
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        menu_pos = (menu_pos + 1) % 2
+                    elif event.key == pygame.K_UP:
+                        menu_pos = (menu_pos - 1) % 2
+                    elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                        if menu_pos == 0:
+                            self.session.main_interface(self.screen)
+                        elif menu_pos == 1:
+                            sys.exit()
+
+            # TODO: Make this while loop not horrible.
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
