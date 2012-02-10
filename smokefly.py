@@ -9,6 +9,8 @@ import sys
 import pygame
 
 BLACK = 0, 0, 0
+WHITE = 255, 255, 255
+
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
@@ -19,11 +21,27 @@ class Application:
         self.session = Session()
 
         pygame.init()
+        pygame.display.set_caption('Smokefly')
         self.screen = pygame.display.set_mode(VIEW_SIZE)
 
         self.main_menu()
 
     def main_menu(self):
+        bgcolor = BLACK
+        fgcolor = WHITE
+
+        self.screen.fill(bgcolor)
+
+        print 'Loading fonts...'
+        courier_new_14 = pygame.font.SysFont('courier new', 14)
+        print 'Done loading fonts'
+
+        self.screen.blit(courier_new_14.render('Play', True, fgcolor, bgcolor), (20, 20))
+        self.screen.blit(courier_new_14.render('Exit', True, fgcolor, bgcolor), (20, 40))
+        pygame.display.update()
+
+        pygame.time.wait(2000) # TODO: make this actually a menu, not just a splash screen
+
         self.session.main_interface(self.screen)
 
 class Landscape:
