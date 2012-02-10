@@ -30,41 +30,9 @@ class Application:
 
     def main_menu(self):
         if MAIN_MENU:
-            bgcolor = BLACK
-            fgcolor = WHITE
-
-            self.screen.fill(bgcolor)
-
-            print 'Loading fonts...'
-            menu_font = pygame.font.SysFont('courier new', 14)
-            print 'Done loading fonts'
-
-            self.screen.blit(menu_font.render('Play', True, fgcolor, bgcolor), (20, 20))
-            self.screen.blit(menu_font.render('Exit', True, fgcolor, bgcolor), (20, 40))
-
-            menu_pos = 0
-
-            while True:
-                pygame.draw.polygon(self.screen, bgcolor, [(10, 40 - 20*menu_pos), (15, 45 - 20*menu_pos), (10, 50 - 20*menu_pos)])
-                # The above line is awful and should be shot.
-                pygame.draw.polygon(self.screen, fgcolor, [(10, 20 + 20*menu_pos), (15, 25 + 20*menu_pos), (10, 30 + 20*menu_pos)])
-                pygame.display.update()
-
-                event = pygame.event.wait()
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
-                        menu_pos = (menu_pos + 1) % 2
-                    elif event.key == pygame.K_UP:
-                        menu_pos = (menu_pos - 1) % 2
-                    elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                        if menu_pos == 0:
-                            self.session.main_interface(self.screen)
-                        elif menu_pos == 1:
-                            sys.exit()
-
-            # TODO: Make this while loop not horrible.
+            Menu(BLACK, WHITE, self.screen, 'courier new',
+                [('Play', lambda: self.session.main_interface(self.screen)), ('Exit', sys.exit)],
+                20, 20, 20, -10, 0, 10)
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
@@ -80,6 +48,40 @@ class Landscape:
         else:
             self.lushness[spot] = random.random()
             return self.lushness[spot]
+
+class Menu:
+    def __init__(self, bg_color, fg_color, screen, font_name, items, x_margin, y_margin, y_spacing, arrow_x, arrow_y, arrow_height):
+        screen.fill(bg_color)
+
+        print 'Loading fonts...'
+        menu_font = pygame.font.SysFont(font_name, 14)
+        print 'Done loading fonts'
+
+        for item_num, item in enumerate(items):
+            screen.blit(menu_font.render(item[0], True, fg_color, bg_color), (x_margin, y_margin + item_num * y_spacing))
+
+        menu_pos = 0
+
+        while True:
+            for item_num in range(len(items)):
+                pygame.draw.polygon(screen, bg_color, [(x_margin + arrow_x, y_margin + arrow_y + item_num*y_spacing), (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + item_num*y_spacing), (x_margin + arrow_x, y_margin + arrow_y + arrow_height + item_num*y_spacing)])
+                # TODO: make that line not ridiculously long.
+
+            pygame.draw.polygon(screen, fg_color, [(x_margin + arrow_x, y_margin + arrow_y + menu_pos*y_spacing), (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + menu_pos*y_spacing), (x_margin + arrow_x, y_margin + arrow_y + arrow_height + menu_pos*y_spacing)])
+            pygame.display.update()
+
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    menu_pos = (menu_pos + 1) % len(items)
+                elif event.key == pygame.K_UP:
+                    menu_pos = (menu_pos - 1) % len(items)
+                elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                    items[menu_pos][1]()
+
+        # TODO: Make this while loop less horrible.
 
 class Session:
     # My instances are instances of the game itself.  Conceptually, a "saved
