@@ -39,7 +39,7 @@ class Application:
             menu_font = pygame.font.SysFont('courier new', 14)
             print 'Done loading fonts'
 
-            self.screen.blit(menu_font.render('Play', False, fgcolor, bgcolor), (20, 20))
+            self.screen.blit(menu_font.render('Play', True, fgcolor, bgcolor), (20, 20))
             self.screen.blit(menu_font.render('Exit', True, fgcolor, bgcolor), (20, 40))
             pygame.display.update()
 
