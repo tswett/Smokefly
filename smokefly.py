@@ -14,8 +14,6 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
-MAIN_MENU = True
-
 def menu(bg_color, fg_color, screen, font_name, items, x_margin, y_margin, y_spacing, arrow_x, arrow_y, arrow_height):
     screen.fill(bg_color)
 
@@ -28,12 +26,18 @@ def menu(bg_color, fg_color, screen, font_name, items, x_margin, y_margin, y_spa
 
     menu_pos = 0
 
+    def arrow(item_num):
+        arrow_1 = (x_margin + arrow_x,                     y_margin + arrow_y +                     item_num*y_spacing)
+        arrow_2 = (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + item_num*y_spacing)
+        arrow_3 = (x_margin + arrow_x,                     y_margin + arrow_y + arrow_height      + item_num*y_spacing)
+        return [arrow_1, arrow_2, arrow_3]
+
     while True:
         for item_num in range(len(items)):
-            pygame.draw.polygon(screen, bg_color, [(x_margin + arrow_x, y_margin + arrow_y + item_num*y_spacing), (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + item_num*y_spacing), (x_margin + arrow_x, y_margin + arrow_y + arrow_height + item_num*y_spacing)])
-            # TODO: make that line not ridiculously long.
+            if item_num != menu_pos:
+                pygame.draw.polygon(screen, bg_color, arrow(item_num))
 
-        pygame.draw.polygon(screen, fg_color, [(x_margin + arrow_x, y_margin + arrow_y + menu_pos*y_spacing), (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + menu_pos*y_spacing), (x_margin + arrow_x, y_margin + arrow_y + arrow_height + menu_pos*y_spacing)])
+        pygame.draw.polygon(screen, fg_color, arrow(menu_pos))
         pygame.display.update()
 
         event = pygame.event.wait()
@@ -47,7 +51,7 @@ def menu(bg_color, fg_color, screen, font_name, items, x_margin, y_margin, y_spa
             elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                 items[menu_pos][1]()
 
-    # TODO: Make this while loop less horrible.
+        # TODO: Make this while loop less horrible.
 
 class Application:
     # My instances represent instances of the application itself.
@@ -62,13 +66,14 @@ class Application:
         self.main_menu()
 
     def main_menu(self):
-        if MAIN_MENU:
-            menu(BLACK, WHITE, self.screen, 'courier new',
-                [('Play', lambda: self.session.main_interface(self.screen)), ('Exit', sys.exit)],
-                20, 20, 20, -10, 0, 10)
+        menu(BLACK, WHITE, self.screen, 'courier new',
+            [('Play', lambda: self.session.main_interface(self.screen)),
+                ('Exit', sys.exit)],
+            20, 20, 20, -10, 0, 10)
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
+    # TODO: use a deterministic PRNG and store the seed instead of its output
 
     def __init__(self):
         self.lushness = {}
@@ -110,6 +115,8 @@ class Session:
             move_y = move_y + 5
 
         self.move_player(move_x, move_y)
+
+        # In fact, this class really shouldn't handle key presses at all.
 
     def get_landscape(self):
         return self.scape
