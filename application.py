@@ -12,7 +12,7 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
-def menu(bg_color, fg_color, screen, font_name, items, x_margin, y_margin, y_spacing, arrow_x, arrow_y, arrow_height):
+def menu(screen, items, bg_color=BLACK, fg_color=WHITE, font_name='courier new', x_margin=20, y_margin=20, y_spacing=20, arrow_x=-10, arrow_y=0, arrow_height=10):
     screen.fill(bg_color)
 
     print 'Loading fonts...'
@@ -64,10 +64,9 @@ class Application:
         self.main_menu()
 
     def main_menu(self):
-        menu(BLACK, WHITE, self.screen, 'courier new',
+        menu(self.screen,
             [('Play', lambda: self.session.main_interface(self.screen)),
-                ('Exit', sys.exit)],
-            20, 20, 20, -10, 0, 10)
+                ('Exit', sys.exit)])
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
