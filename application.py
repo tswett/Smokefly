@@ -20,7 +20,9 @@ def menu(screen, items, bg_color=BLACK, fg_color=WHITE, font_name='courier new',
     print 'Done loading fonts'
 
     for item_num, item in enumerate(items):
-        screen.blit(menu_font.render(item[0], True, fg_color, bg_color), (x_margin, y_margin + item_num * y_spacing))
+        text = menu_font.render(text = item[0], antialias = True, color = fg_color, background = bg_color)
+        location = (x_margin, y_margin + item_num * y_spacing)
+        screen.blit(text, location)
 
     menu_pos = 0
 
@@ -31,6 +33,7 @@ def menu(screen, items, bg_color=BLACK, fg_color=WHITE, font_name='courier new',
         return [arrow_1, arrow_2, arrow_3]
 
     while True:
+        # Erase all arrows that should be invisible
         for item_num in range(len(items)):
             if item_num != menu_pos:
                 pygame.draw.polygon(screen, bg_color, arrow(item_num))
@@ -81,8 +84,8 @@ class Landscape:
         elif (type(spot) != tuple or len(spot) != 2):
             raise KeyError
         else:
-            self.lushness[spot] = random.random()
-            return self.lushness[spot]
+            lushness = self.lushness[spot] = random.random()
+            return lushness
 
 class Session:
     # My instances are instances of the game itself.  Conceptually, a "saved
@@ -111,14 +114,11 @@ class Session:
         if keys[pygame.K_DOWN]:
             move_y = move_y + 5
 
-        self.move_player(move_x, move_y)
+        self.move_player_by(move_x, move_y)
 
         # In fact, this class really shouldn't handle key presses at all.
 
-    def get_landscape(self):
-        return self.scape
-
-    def move_player(self, dx, dy):
+    def move_player_by(self, dx, dy):
         self.player_x += dx
         self.player_y += dy
 
@@ -150,7 +150,7 @@ class Viewport:
     def set_pos(self, x, y):
         self.x, self.y = x, y
 
-    def move(self, move_x, move_y):
+    def move_by(self, move_x, move_y):
         self.x, self.y = self.x + move_x, self.y + move_y
 
     def visible_landscape_squares(self):
@@ -158,22 +158,30 @@ class Viewport:
         # landscape tile with integer coordinate x is considered to cover the
         # real coordinates [x, x+1).
 
+        # Convert our dimensions from pixels to landscape coordinates
         coord_width, coord_height = self.width / self.tile_width, self.height / self.tile_height
         coord_x, coord_y = self.x / self.tile_width, self.y / self.tile_height
 
+        # Find the landscape tiles that our bounding box falls on
         coord_left = int(math.floor(coord_x - coord_width / 2))
         coord_right = int(math.floor(coord_x + coord_width / 2))
         coord_top = int(math.floor(coord_y - coord_height / 2))
         coord_bottom = int(math.floor(coord_y + coord_height / 2))
 
+        # Return all the tiles from coord_left to coord_right inclusive
         return [(x,y) for x in range(coord_left, coord_right+1) for y in range(coord_top, coord_bottom+1)]
 
     def draw_on(self, screen):
         tiles = self.visible_landscape_squares()
 
         for (x, y) in tiles:
-            tile_left, tile_top = TILE_WIDTH * x - self.x + (VIEW_WIDTH // 2), TILE_HEIGHT * y - self.y + (VIEW_HEIGHT // 2)
-            pygame.draw.rect(screen, (0, 255*self.scape.get_lushness((x, y)), 0), (tile_left, tile_top, TILE_WIDTH, TILE_HEIGHT))
+            tile_left = TILE_WIDTH * x - self.x + (VIEW_WIDTH // 2)
+            tile_top = TILE_HEIGHT * y - self.y + (VIEW_HEIGHT // 2)
+
+            tile_color = (0, 255*self.scape.get_lushness((x, y)), 0)
+            tile_dims = (tile_left, tile_top, TILE_WIDTH, TILE_HEIGHT)
+
+            pygame.draw.rect(screen, tile_color, tile_dims)
 
         pygame.display.update()
             # It really seems like pygame.display ought to be connected to the screen somehow.
