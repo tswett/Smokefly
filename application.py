@@ -175,11 +175,11 @@ class Viewport:
         tiles = self.visible_landscape_squares()
 
         for (x, y) in tiles:
-            tile_left = TILE_WIDTH * x - self.x + (VIEW_WIDTH // 2)
-            tile_top = TILE_HEIGHT * y - self.y + (VIEW_HEIGHT // 2)
+            tile_left = self.tile_width * x - self.x + (self.width // 2)
+            tile_top = self.tile_height * y - self.y + (self.height // 2)
 
             tile_color = (0, 255*self.scape.get_lushness((x, y)), 0)
-            tile_dims = (tile_left, tile_top, TILE_WIDTH, TILE_HEIGHT)
+            tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
 
             pygame.draw.rect(screen, tile_color, tile_dims)
 
