@@ -68,7 +68,7 @@ class Application:
 
     def main_menu(self):
         menu(self.screen,
-            [('Play', lambda: self.session.main_interface(self.screen)),
+            [('Play', lambda: self.session.play(self.screen)),
                 ('Exit', sys.exit)])
 
 class Landscape:
@@ -125,10 +125,10 @@ class Session:
     def get_player(self):
         return self.player_x, self.player_y
 
-    def main_interface(self, screen):
+    def play(self, screen):
         port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
 
-        while 1:
+        while True:
             port.center_on(self.player_x, self.player_y)
             port.draw_on(screen)
             self.tick()
