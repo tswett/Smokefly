@@ -12,54 +12,72 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
-def menu(screen, items, bg_color=BLACK, fg_color=WHITE, font_name='courier new', x_margin=20, y_margin=20, y_spacing=20, arrow_x=-10, arrow_y=0, arrow_height=10):
-    screen.fill(bg_color)
+class Menu:
+    def __init__(self):
+        self.screen = None
+        self.items = None
+        self.bg_color = BLACK
+        self.fg_color = WHITE
+        self.font_name = 'courier new'
+        self.x_margin = 20
+        self.y_margin = 20
+        self.y_spacing = 20
+        self.arrow_x = -10
+        self.arrow_y = 0
+        self.arrow_height = 10
 
-    print 'Loading fonts...'
-    menu_font = pygame.font.SysFont(font_name, 14)
-    print 'Done loading fonts'
+    def display(self):
+        self.screen.fill(self.bg_color)
 
-    for item_num, item in enumerate(items):
-        text = menu_font.render(text = item[0], antialias = True, color = fg_color, background = bg_color)
-        location = (x_margin, y_margin + item_num * y_spacing)
-        screen.blit(text, location)
+        print 'Loading fonts...'
+        menu_font = pygame.font.SysFont(self.font_name, 14)
+        print 'Done loading fonts'
 
-    menu_pos = 0
+        for item_num, item in enumerate(self.items):
+            text = menu_font.render(item[0], True, self.fg_color, self.bg_color)
+            location = (self.x_margin, self.y_margin + item_num * self.y_spacing)
+            self.screen.blit(text, location)
 
-    def arrow(item_num):
-        arrow_1 = (x_margin + arrow_x,                     y_margin + arrow_y +                     item_num*y_spacing)
-        arrow_2 = (x_margin + arrow_x + arrow_height // 2, y_margin + arrow_y + arrow_height // 2 + item_num*y_spacing)
-        arrow_3 = (x_margin + arrow_x,                     y_margin + arrow_y + arrow_height      + item_num*y_spacing)
-        return [arrow_1, arrow_2, arrow_3]
+        menu_pos = 0
 
-    while True:
-        # Erase all arrows that should be invisible
-        for item_num in range(len(items)):
-            if item_num != menu_pos:
-                pygame.draw.polygon(screen, bg_color, arrow(item_num))
+        def arrow(item_num):
+            arrow_1 = (self.x_margin + self.arrow_x,
+                       self.y_margin + self.arrow_y + item_num*self.y_spacing)
 
-        pygame.draw.polygon(screen, fg_color, arrow(menu_pos))
-        pygame.display.update()
+            arrow_2 = (self.x_margin + self.arrow_x + self.arrow_height // 2,
+                       self.y_margin + self.arrow_y + self.arrow_height // 2 + item_num*self.y_spacing)
 
-        event = pygame.event.wait()
-        if event.type == pygame.QUIT:
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                menu_pos = (menu_pos + 1) % len(items)
-            elif event.key == pygame.K_UP:
-                menu_pos = (menu_pos - 1) % len(items)
-            elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                items[menu_pos][1]()
+            arrow_3 = (self.x_margin + self.arrow_x,
+                       self.y_margin + self.arrow_y + self.arrow_height + item_num*self.y_spacing)
 
-        # TODO: Make this while loop less horrible.
+            return [arrow_1, arrow_2, arrow_3]
+
+        while True:
+            # Erase all arrows that should be invisible
+            for item_num in range(len(self.items)):
+                if item_num != menu_pos:
+                    pygame.draw.polygon(self.screen, self.bg_color, arrow(item_num))
+
+            pygame.draw.polygon(self.screen, self.fg_color, arrow(menu_pos))
+            pygame.display.update()
+
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    menu_pos = (menu_pos + 1) % len(self.items)
+                elif event.key == pygame.K_UP:
+                    menu_pos = (menu_pos - 1) % len(self.items)
+                elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                    return self.items[menu_pos][1]
+
+            # TODO: Make this while loop less horrible.
 
 class Application:
     # My instances represent instances of the application itself.
 
     def __init__(self):
-        self.session = Session()
-
         pygame.init()
         pygame.display.set_caption('Smokefly')
         self.screen = pygame.display.set_mode(VIEW_SIZE)
@@ -67,9 +85,28 @@ class Application:
         self.main_menu()
 
     def main_menu(self):
-        menu(self.screen,
-            [('Play', lambda: self.session.play(self.screen)),
-                ('Exit', sys.exit)])
+        init_menu = Menu()
+        init_menu.screen = self.screen
+        init_menu.items = [('New Game', 'new_game'), ('Quit', 'quit')]
+
+        cont_menu = Menu()
+        cont_menu.screen = self.screen
+        cont_menu.items = [('New Game', 'new_game'), ('Continue', 'continue'), ('Quit', 'quit')]
+
+        option = init_menu.display()
+
+        while True:
+            print 'Menu option chosen:', option
+
+            if option == 'new_game':
+                self.session = Session()
+                self.session.play(self.screen)
+            elif option == 'continue':
+                self.session.play(self.screen)
+            elif option == 'quit':
+                return
+
+            option = cont_menu.display()
 
 class Landscape:
     # My instances are landscapes or "maps" within a Smokefly universe.
@@ -98,11 +135,16 @@ class Session:
         self.player_x, self.player_y = 0, 0
 
     def tick(self, force_draw = False):
+        # Returns True if the user has pressed escape.
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
                 # TODO: this doesn't belong here
 
         keys = pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE]:
+            return True
+
         move_x, move_y = 0, 0
 
         if keys[pygame.K_RIGHT]:
@@ -115,6 +157,7 @@ class Session:
             move_y = move_y + 5
 
         self.move_player_by(move_x, move_y)
+        return False
 
         # In fact, this class really shouldn't handle key presses at all.
 
@@ -131,7 +174,8 @@ class Session:
         while True:
             port.center_on(self.player_x, self.player_y)
             port.draw_on(screen)
-            self.tick()
+            if self.tick(): # if the user has pressed escape:
+                return
             pygame.time.wait(50)
 
 class Viewport:
