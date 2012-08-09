@@ -12,6 +12,8 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
+TICK_DELAY = 50
+
 class Menu:
     def __init__(self):
         self.screen = None
@@ -176,7 +178,7 @@ class Session:
             port.draw_on(screen)
             if self.tick(): # if the user has pressed escape:
                 return
-            pygame.time.wait(50)
+            pygame.time.wait(TICK_DELAY)
 
 class Viewport:
     # My instances represent rectangular regions within Landscapes.
