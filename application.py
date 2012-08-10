@@ -12,7 +12,7 @@ WHITE = 255, 255, 255
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
-TICK_DELAY = 50
+FRAMERATE = 50
 
 class Menu:
     def __init__(self):
@@ -136,6 +136,8 @@ class Session:
 
         self.player_x, self.player_y = 0, 0
 
+        self.frame_number = 0
+
     def tick(self, force_draw = False):
         # Returns True if the user has pressed escape.
 
@@ -150,13 +152,13 @@ class Session:
         move_x, move_y = 0, 0
 
         if keys[pygame.K_RIGHT]:
-            move_x = move_x + 5
+            move_x = move_x + 2
         if keys[pygame.K_LEFT]:
-            move_x = move_x - 5
+            move_x = move_x - 2
         if keys[pygame.K_UP]:
-            move_y = move_y - 5
+            move_y = move_y - 2
         if keys[pygame.K_DOWN]:
-            move_y = move_y + 5
+            move_y = move_y + 2
 
         self.move_player_by(move_x, move_y)
         return False
@@ -173,12 +175,19 @@ class Session:
     def play(self, screen):
         port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
 
+        clock = pygame.time.Clock()
+
         while True:
+            self.frame_number += 1
+
             port.center_on(self.player_x, self.player_y)
             port.draw_on(screen)
             if self.tick(): # if the user has pressed escape:
                 return
-            pygame.time.wait(TICK_DELAY)
+
+            clock.tick(FRAMERATE)
+            if self.frame_number % FRAMERATE == 0: # in other words, once per (nominal) second
+                print 'FPS:', clock.get_fps()
 
 class Viewport:
     # My instances represent rectangular regions within Landscapes.
