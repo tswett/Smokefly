@@ -22,11 +22,14 @@ import pygame
 
 BLACK = 0, 0, 0
 WHITE = 255, 255, 255
+ASPHALT_COLOR = 128, 128, 128
 
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
 FRAMERATE = 50
+
+ASPHALT_FREQUENCY = 0.05
 
 class Menu:
     def __init__(self):
@@ -124,21 +127,38 @@ class Application:
 
             option = cont_menu.display()
 
-class Landscape:
-    # My instances are landscapes or "maps" within a Smokefly universe.
+class Ambiance:
+    # My instances contain the data associated with a particular landscape cell.
     # TODO: use a deterministic PRNG and store the seed instead of its output
 
     def __init__(self):
-        self.lushness = {}
+        self.lushness = random.random()
+        self.asphalt = random.random() < ASPHALT_FREQUENCY
+        self.paved = False
 
-    def get_lushness(self, spot):
-        if spot in self.lushness:
-            return self.lushness[spot]
+class Landscape:
+    # My instances are landscapes or "maps" within a Smokefly universe.
+
+    def __init__(self):
+        self.ambiance = {}
+
+    def get_ambiance(self, spot):
+        if spot in self.ambiance:
+            return self.ambiance[spot]
         elif (type(spot) != tuple or len(spot) != 2):
             raise KeyError
         else:
-            lushness = self.lushness[spot] = random.random()
-            return lushness
+            ambiance = self.ambiance[spot] = Ambiance()
+            return ambiance
+
+    def get_lushness(self, spot):
+        return self.get_ambiance(spot).lushness
+
+    def get_has_asphalt(self, spot):
+        return self.get_ambiance(spot).asphalt
+
+    def get_is_paved(self, spot):
+        return self.get_ambiance(spot).paved
 
 class Session:
     # My instances are instances of the game itself.  Conceptually, a "saved
@@ -251,6 +271,13 @@ class Viewport:
             tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
 
             pygame.draw.rect(screen, tile_color, tile_dims)
+
+            if self.scape.get_has_asphalt((x, y)):
+                tile_center = (self.tile_width * x - self.x + (self.tile_width // 2) + (self.width // 2),
+                               self.tile_height * y - self.y + (self.tile_height // 2) + (self.height // 2))
+
+                pygame.draw.circle(screen, BLACK, tile_center, self.tile_width // 5 + 1, 0)
+                pygame.draw.circle(screen, ASPHALT_COLOR, tile_center, self.tile_width // 5, 0)
 
         pygame.display.update()
             # It really seems like pygame.display ought to be connected to the screen somehow.
