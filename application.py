@@ -159,8 +159,16 @@ class Landscape:
     def get_has_asphalt(self, spot):
         return self.get_ambiance(spot).asphalt
 
+    def set_has_asphalt(self, spot, val):
+        self.get_ambiance(spot).asphalt = val
+
     def get_is_paved(self, spot):
         return self.get_ambiance(spot).paved
+
+    def try_take_asphalt(self, spot):
+        took_asphalt = self.get_has_asphalt(spot)
+        self.set_has_asphalt(spot, False)
+        return took_asphalt
 
 class Session:
     # My instances are instances of the game itself.  Conceptually, a "saved
@@ -170,7 +178,9 @@ class Session:
         self.scape = Landscape()
         self.port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
 
+        # player_x and player_y are measured in tiles.
         self.player_x, self.player_y = 0, 0
+        self.asphalt = 0
 
         self.frame_number = 0
 
@@ -196,7 +206,14 @@ class Session:
         if keys[pygame.K_DOWN]:
             move_y = move_y + 1/16
 
-        self.move_player_by(move_x, move_y)
+        new_x, new_y = self.move_player_by(move_x, move_y)
+        tile = int(math.floor(new_x)), int(math.floor(new_y))
+
+        got_asphalt = self.scape.try_take_asphalt(tile)
+        if got_asphalt:
+            self.asphalt += 1
+            print 'Got asphalt; now have', self.asphalt
+
         return False
 
         # In fact, this class really shouldn't handle key presses at all.
@@ -204,6 +221,7 @@ class Session:
     def move_player_by(self, dx, dy):
         self.player_x += dx
         self.player_y += dy
+        return self.player_x, self.player_y
 
     def get_player(self):
         return self.player_x, self.player_y
