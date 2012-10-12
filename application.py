@@ -188,13 +188,13 @@ class Session:
         move_x, move_y = 0, 0
 
         if keys[pygame.K_RIGHT]:
-            move_x = move_x + 2
+            move_x = move_x + 1/16
         if keys[pygame.K_LEFT]:
-            move_x = move_x - 2
+            move_x = move_x - 1/16
         if keys[pygame.K_UP]:
-            move_y = move_y - 2
+            move_y = move_y - 1/16
         if keys[pygame.K_DOWN]:
-            move_y = move_y + 2
+            move_y = move_y + 1/16
 
         self.move_player_by(move_x, move_y)
         return False
@@ -233,16 +233,20 @@ class Viewport:
         self.tile_width, self.tile_height = tile_width, tile_height
         self.width, self.height = width, height
         self.x, self.y = 0, 0
-            # x and y are the center of the viewport
+            # x and y are the center of the viewport (measured in pixels)
 
     def get_pos(self):
         return self.x, self.y
 
     def set_pos(self, x, y):
-        self.x, self.y = x, y
+        self.x, self.y = int(x), int(y)
 
     def move_by(self, move_x, move_y):
-        self.x, self.y = self.x + move_x, self.y + move_y
+        x, y = self.get_pos()
+        self.set_pos(x + move_x, y + move_y)
+
+    def center_on(self, px_x, px_y):
+        self.set_pos(px_x * TILE_WIDTH, px_y * TILE_HEIGHT)
 
     def visible_landscape_squares(self):
         # Return a list of all landscape squares visible in the viewport.  A
@@ -288,9 +292,6 @@ class Viewport:
 
         pygame.display.update()
             # It really seems like pygame.display ought to be connected to the screen somehow.
-
-    def center_on(self, x, y):
-        self.x, self.y = x, y
 
 #   def get_scape(self):
 #       return self.scape
