@@ -165,6 +165,9 @@ class Landscape:
     def get_is_paved(self, spot):
         return self.get_ambiance(spot).paved
 
+    def set_is_paved(self, spot, val):
+        self.get_ambiance(spot).paved = val
+
     def try_take_asphalt(self, spot):
         took_asphalt = self.get_has_asphalt(spot)
         self.set_has_asphalt(spot, False)
@@ -195,24 +198,37 @@ class Session:
         if keys[pygame.K_ESCAPE]:
             return True
 
+        old_x, old_y = self.get_player()
+        old_tile = int(math.floor(old_x)), int(math.floor(old_y))
+
         move_x, move_y = 0, 0
 
+        if self.scape.get_is_paved(old_tile):
+            speed = 1/4
+        else:
+            speed = 1/16
+
         if keys[pygame.K_RIGHT]:
-            move_x = move_x + 1/16
+            move_x = move_x + speed
         if keys[pygame.K_LEFT]:
-            move_x = move_x - 1/16
+            move_x = move_x - speed
         if keys[pygame.K_UP]:
-            move_y = move_y - 1/16
+            move_y = move_y - speed
         if keys[pygame.K_DOWN]:
-            move_y = move_y + 1/16
+            move_y = move_y + speed
 
         new_x, new_y = self.move_player_by(move_x, move_y)
-        tile = int(math.floor(new_x)), int(math.floor(new_y))
+        new_tile = int(math.floor(new_x)), int(math.floor(new_y))
 
-        got_asphalt = self.scape.try_take_asphalt(tile)
+        got_asphalt = self.scape.try_take_asphalt(new_tile)
         if got_asphalt:
             self.asphalt += 1
             print 'Got asphalt; now have', self.asphalt
+
+        if keys[pygame.K_SPACE] and self.asphalt > 0 and not self.scape.get_is_paved(new_tile):
+            self.asphalt -= 1
+            self.scape.set_is_paved(new_tile, True)
+            print 'Used asphalt; now have', self.asphalt
 
         return False
 
@@ -289,11 +305,17 @@ class Viewport:
 
         center = center_x, center_y = self.width // 2, self.height // 2
 
-        for (x, y) in tiles:
+        for tile in tiles:
+            x, y = tile
+
             tile_left = self.tile_width * x - self.x + center_x
             tile_top = self.tile_height * y - self.y + center_y
 
-            tile_color = (0, 255*self.scape.get_lushness((x, y)), 0)
+            if self.scape.get_is_paved(tile):
+                tile_color = ASPHALT_COLOR
+            else:
+                tile_color = (0, 255*self.scape.get_lushness(tile), 0)
+
             tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
 
             pygame.draw.rect(screen, tile_color, tile_dims)
