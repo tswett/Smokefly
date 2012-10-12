@@ -225,7 +225,7 @@ class Session:
             self.asphalt += 1
             print 'Got asphalt; now have', self.asphalt
 
-        if keys[pygame.K_SPACE] and self.asphalt > 0 and not self.scape.get_is_paved(new_tile):
+        if keys[pygame.K_q] and self.asphalt > 0 and not self.scape.get_is_paved(new_tile):
             self.asphalt -= 1
             self.scape.set_is_paved(new_tile, True)
             print 'Used asphalt; now have', self.asphalt
