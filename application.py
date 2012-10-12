@@ -22,7 +22,9 @@ import pygame
 
 BLACK = 0, 0, 0
 WHITE = 255, 255, 255
+
 ASPHALT_COLOR = 128, 128, 128
+PLAYER_COLOR = 255, 255, 0
 
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 480
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
@@ -263,9 +265,11 @@ class Viewport:
     def draw_on(self, screen):
         tiles = self.visible_landscape_squares()
 
+        center = center_x, center_y = self.width // 2, self.height // 2
+
         for (x, y) in tiles:
-            tile_left = self.tile_width * x - self.x + (self.width // 2)
-            tile_top = self.tile_height * y - self.y + (self.height // 2)
+            tile_left = self.tile_width * x - self.x + center_x
+            tile_top = self.tile_height * y - self.y + center_y
 
             tile_color = (0, 255*self.scape.get_lushness((x, y)), 0)
             tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
@@ -273,11 +277,14 @@ class Viewport:
             pygame.draw.rect(screen, tile_color, tile_dims)
 
             if self.scape.get_has_asphalt((x, y)):
-                tile_center = (self.tile_width * x - self.x + (self.tile_width // 2) + (self.width // 2),
-                               self.tile_height * y - self.y + (self.tile_height // 2) + (self.height // 2))
+                tile_center = (self.tile_width * x - self.x + (self.tile_width // 2) + center_x,
+                               self.tile_height * y - self.y + (self.tile_height // 2) + center_y)
 
                 pygame.draw.circle(screen, BLACK, tile_center, self.tile_width // 5 + 1, 0)
                 pygame.draw.circle(screen, ASPHALT_COLOR, tile_center, self.tile_width // 5, 0)
+
+        pygame.draw.circle(screen, BLACK, center, self.tile_width // 3 + 1, 0)
+        pygame.draw.circle(screen, PLAYER_COLOR, center, self.tile_width // 3, 0)
 
         pygame.display.update()
             # It really seems like pygame.display ought to be connected to the screen somehow.
