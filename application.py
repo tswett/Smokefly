@@ -137,7 +137,6 @@ class Application:
                     loadee = yaml.load(file(path, 'r'))
                 except:
                     print 'Load error'
-                    raise
                 else:
                     if isinstance(loadee, Session):
                         print 'Load successful'
