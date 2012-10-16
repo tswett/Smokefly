@@ -19,6 +19,7 @@ import random
 import sys
 
 import pygame
+import yaml
 
 BLACK = 0, 0, 0
 WHITE = 255, 255, 255
@@ -102,34 +103,67 @@ class Application:
         pygame.init()
         pygame.display.set_caption('Smokefly')
         self.screen = pygame.display.set_mode(VIEW_SIZE)
+        self.session = None
 
         self.main_menu()
 
     def main_menu(self):
         init_menu = Menu()
         init_menu.screen = self.screen
-        init_menu.items = [('New Game', 'new_game'), ('Quit', 'quit')]
+        init_menu.items = [('New Game', 'new_game'), ('Load Game', 'load_game'), ('Quit', 'quit')]
 
         cont_menu = Menu()
         cont_menu.screen = self.screen
-        cont_menu.items = [('New Game', 'new_game'), ('Continue', 'continue'), ('Quit', 'quit')]
-
-        option = init_menu.display()
+        cont_menu.items = [('New Game', 'new_game'), ('Load Game', 'load_game'), ('Save Game', 'save_game'), ('Continue', 'continue'), ('Quit', 'quit')]
 
         while True:
+            if self.session:
+                option = cont_menu.display()
+            else:
+                option = init_menu.display()
+
             print 'Menu option chosen:', option
 
             if option == 'new_game':
                 self.session = Session()
                 self.session.play(self.screen)
+
+            elif option == 'load_game':
+                print 'Loading saved games from an untrusted source may damage your computer.'
+                print 'Enter path:'
+                path = raw_input()
+
+                try:
+                    loadee = yaml.load(file(path, 'r'))
+                except:
+                    print 'Load error'
+                    raise
+                else:
+                    if isinstance(loadee, Session):
+                        print 'Load successful'
+                        self.session = loadee
+                        self.session.play(self.screen)
+                    else:
+                        print 'Document loaded is not a Session'
+
+            elif option == 'save_game':
+                print 'Enter path:'
+                path = raw_input()
+
+                try:
+                    yaml.dump(self.session, file(path, 'w+'))
+                except:
+                    print 'Save error'
+                else:
+                    print 'Save successful'
+
             elif option == 'continue':
                 self.session.play(self.screen)
+
             elif option == 'quit':
                 return
 
-            option = cont_menu.display()
-
-class Ambiance:
+class Ambiance(yaml.YAMLObject):
     # My instances contain the data associated with a particular landscape cell.
     # TODO: use a deterministic PRNG and store the seed instead of its output
 
@@ -138,7 +172,7 @@ class Ambiance:
         self.asphalt = random.random() < ASPHALT_FREQUENCY
         self.paved = False
 
-class Landscape:
+class Landscape(yaml.YAMLObject):
     # My instances are landscapes or "maps" within a Smokefly universe.
 
     def __init__(self):
@@ -173,7 +207,7 @@ class Landscape:
         self.set_has_asphalt(spot, False)
         return took_asphalt
 
-class Session:
+class Session(yaml.YAMLObject):
     # My instances are instances of the game itself.  Conceptually, a "saved
     # game" consists of one Session.
 
@@ -259,7 +293,7 @@ class Session:
             if self.frame_number % FRAMERATE == 0: # in other words, once per (nominal) second
                 print 'FPS:', clock.get_fps()
 
-class Viewport:
+class Viewport(yaml.YAMLObject):
     # My instances represent rectangular regions within Landscapes.
 
     def __init__(self, landscape, tile_width, tile_height, width, height):
