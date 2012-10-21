@@ -27,6 +27,7 @@ WHITE = 255, 255, 255
 ASPHALT_COLOR = 128, 128, 128
 PLAYER_COLOR = 255, 255, 0
 
+SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 960, 640
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 640
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 
@@ -102,7 +103,8 @@ class Application:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Smokefly')
-        self.screen = pygame.display.set_mode(VIEW_SIZE)
+
+        self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.session = None
 
         self.main_menu()
@@ -276,15 +278,17 @@ class Session(yaml.YAMLObject):
         return self.player_x, self.player_y
 
     def play(self, screen):
+        viewarea = screen.subsurface((0, 0) + VIEW_SIZE)
         port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
-
         clock = pygame.time.Clock()
 
         while True:
             self.frame_number += 1
 
             port.center_on(self.player_x, self.player_y)
-            port.draw_on(screen)
+            port.draw_on(viewarea)
+            pygame.display.update()
+
             if self.tick(): # if the user has pressed escape:
                 return
 
@@ -333,7 +337,7 @@ class Viewport(yaml.YAMLObject):
         # Return all the tiles from coord_left to coord_right inclusive
         return [(x,y) for x in range(coord_left, coord_right+1) for y in range(coord_top, coord_bottom+1)]
 
-    def draw_on(self, screen):
+    def draw_on(self, surface):
         tiles = self.visible_landscape_squares()
 
         center = center_x, center_y = self.width // 2, self.height // 2
@@ -352,20 +356,17 @@ class Viewport(yaml.YAMLObject):
 
             tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
 
-            pygame.draw.rect(screen, tile_color, tile_dims)
+            pygame.draw.rect(surface, tile_color, tile_dims)
 
             if self.scape.get_has_asphalt((x, y)):
                 tile_center = (self.tile_width * x - self.x + (self.tile_width // 2) + center_x,
                                self.tile_height * y - self.y + (self.tile_height // 2) + center_y)
 
-                pygame.draw.circle(screen, BLACK, tile_center, self.tile_width // 5 + 1, 0)
-                pygame.draw.circle(screen, ASPHALT_COLOR, tile_center, self.tile_width // 5, 0)
+                pygame.draw.circle(surface, BLACK, tile_center, self.tile_width // 5 + 1, 0)
+                pygame.draw.circle(surface, ASPHALT_COLOR, tile_center, self.tile_width // 5, 0)
 
-        pygame.draw.circle(screen, BLACK, center, self.tile_width // 3 + 1, 0)
-        pygame.draw.circle(screen, PLAYER_COLOR, center, self.tile_width // 3, 0)
-
-        pygame.display.update()
-            # It really seems like pygame.display ought to be connected to the screen somehow.
+        pygame.draw.circle(surface, BLACK, center, self.tile_width // 3 + 1, 0)
+        pygame.draw.circle(surface, PLAYER_COLOR, center, self.tile_width // 3, 0)
 
 #   def get_scape(self):
 #       return self.scape
