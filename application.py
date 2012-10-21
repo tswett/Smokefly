@@ -281,12 +281,10 @@ class Session(yaml.YAMLObject):
         got_asphalt = self.scape.try_take_asphalt(new_tile)
         if got_asphalt:
             self.asphalt += 1
-            print 'Got asphalt; now have', self.asphalt
 
         if keys[pygame.K_q] and self.asphalt > 0 and not self.scape.get_is_paved(new_tile):
             self.asphalt -= 1
             self.scape.set_is_paved(new_tile, True)
-            print 'Used asphalt; now have', self.asphalt
 
         return False
 
@@ -302,22 +300,32 @@ class Session(yaml.YAMLObject):
 
     def play(self, screen):
         viewarea = screen.subsurface((0, 0) + VIEW_SIZE)
+        statusarea = screen.subsurface((VIEW_WIDTH, 0, SCREEN_WIDTH - VIEW_WIDTH, VIEW_HEIGHT))
+
         port = Viewport(self.scape, TILE_WIDTH, TILE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT)
+
+        statuslist = DisplayList()
+        statuslist.surface = statusarea
+        statuslist.items = [('', None), ('', None)]
+
         clock = pygame.time.Clock()
 
         while True:
             self.frame_number += 1
 
+            clock.tick(FRAMERATE)
+
             port.center_on(self.player_x, self.player_y)
             port.draw_on(viewarea)
+
+            statuslist.items[0] = ('FPS: ' + str(int(math.floor(clock.get_fps()))), None)
+            statuslist.items[1] = ('Asphalt: ' + str(self.asphalt), None)
+            statuslist.draw()
+
             pygame.display.update()
 
             if self.tick(): # if the user has pressed escape:
                 return
-
-            clock.tick(FRAMERATE)
-            if self.frame_number % FRAMERATE == 0: # in other words, once per (nominal) second
-                print 'FPS:', clock.get_fps()
 
 class Viewport(yaml.YAMLObject):
     # My instances represent rectangular regions within Landscapes.
