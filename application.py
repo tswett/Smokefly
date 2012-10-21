@@ -347,7 +347,8 @@ class Viewport(yaml.YAMLObject):
             if self.scape.get_is_paved(tile):
                 tile_color = ASPHALT_COLOR
             else:
-                tile_color = (0, 255*self.scape.get_lushness(tile), 0)
+                lushness = self.scape.get_lushness(tile)
+                tile_color = (64 - 64*lushness, 64 + 128*lushness, 32)
 
             tile_dims = (tile_left, tile_top, self.tile_width, self.tile_height)
 
