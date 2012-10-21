@@ -35,9 +35,9 @@ FRAMERATE = 50
 
 ASPHALT_FREQUENCY = 0.05
 
-class Menu:
+class DisplayList:
     def __init__(self):
-        self.screen = None
+        self.surface = None
         self.items = None
         self.bg_color = BLACK
         self.fg_color = WHITE
@@ -45,23 +45,40 @@ class Menu:
         self.x_margin = 20
         self.y_margin = 20
         self.y_spacing = 20
+
+        print 'Loading fonts...'
+        self.font = pygame.font.SysFont(self.font_name, 14)
+        print 'Done loading fonts'
+
+    def draw(self):
+        # Draw yourself on the surface, possibly for the first time.
+
+        self.surface.fill(self.bg_color)
+
+        for item_num, item in enumerate(self.items):
+            text = self.font.render(item[0], True, self.fg_color, self.bg_color)
+            location = (self.x_margin, self.y_margin + item_num * self.y_spacing)
+            self.surface.blit(text, location)
+
+        self.redraw()
+
+    def redraw(self):
+        # Draw yourself on the surface, assuming that you have already been drawn there.
+
+        pass
+
+class Menu(DisplayList):
+    def __init__(self):
+        DisplayList.__init__(self)
+
         self.arrow_x = -10
         self.arrow_y = 0
         self.arrow_height = 10
 
-    def display(self):
-        self.screen.fill(self.bg_color)
+        self.menu_pos = 0
 
-        print 'Loading fonts...'
-        menu_font = pygame.font.SysFont(self.font_name, 14)
-        print 'Done loading fonts'
-
-        for item_num, item in enumerate(self.items):
-            text = menu_font.render(item[0], True, self.fg_color, self.bg_color)
-            location = (self.x_margin, self.y_margin + item_num * self.y_spacing)
-            self.screen.blit(text, location)
-
-        menu_pos = 0
+    def redraw(self):
+        DisplayList.redraw(self)
 
         def arrow(item_num):
             arrow_1 = (self.x_margin + self.arrow_x,
@@ -75,25 +92,31 @@ class Menu:
 
             return [arrow_1, arrow_2, arrow_3]
 
+        # Erase all arrows that should be invisible
+        for item_num in range(len(self.items)):
+            if item_num != self.menu_pos:
+                pygame.draw.polygon(self.surface, self.bg_color, arrow(item_num))
+
+        pygame.draw.polygon(self.surface, self.fg_color, arrow(self.menu_pos))
+
+    def display(self):
+        self.draw()
+        pygame.display.update()
+
         while True:
-            # Erase all arrows that should be invisible
-            for item_num in range(len(self.items)):
-                if item_num != menu_pos:
-                    pygame.draw.polygon(self.screen, self.bg_color, arrow(item_num))
-
-            pygame.draw.polygon(self.screen, self.fg_color, arrow(menu_pos))
-            pygame.display.update()
-
             event = pygame.event.wait()
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    menu_pos = (menu_pos + 1) % len(self.items)
+                    self.menu_pos = (self.menu_pos + 1) % len(self.items)
                 elif event.key == pygame.K_UP:
-                    menu_pos = (menu_pos - 1) % len(self.items)
+                    self.menu_pos = (self.menu_pos - 1) % len(self.items)
                 elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                    return self.items[menu_pos][1]
+                    return self.items[self.menu_pos][1]
+
+            self.redraw()
+            pygame.display.update()
 
             # TODO: Make this while loop less horrible.
 
@@ -111,11 +134,11 @@ class Application:
 
     def main_menu(self):
         init_menu = Menu()
-        init_menu.screen = self.screen
+        init_menu.surface = self.screen
         init_menu.items = [('New Game', 'new_game'), ('Load Game', 'load_game'), ('Quit', 'quit')]
 
         cont_menu = Menu()
-        cont_menu.screen = self.screen
+        cont_menu.surface = self.screen
         cont_menu.items = [('New Game', 'new_game'), ('Load Game', 'load_game'), ('Save Game', 'save_game'), ('Continue', 'continue'), ('Quit', 'quit')]
 
         while True:
