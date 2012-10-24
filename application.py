@@ -244,8 +244,39 @@ class Landscape(yaml.YAMLObject):
         return took_asphalt
 
     def passable(self, spot):
-        x, y = spot
-        return not self.get_has_wall((int(math.floor(x)), int(math.floor(y))))
+        player_x, player_y = spot
+
+        def player_collides_with(tile_x, tile_y):
+            # Check whether the circle representing the player intersects with
+            # the tile (tile_x, tile_y).
+
+            # Algorithm taken from http://stackoverflow.com/a/1879223/1108505
+
+            def bound(val, low, high):
+                if high < low:
+                    raise ValueError, 'lower bound greater than upper bound'
+                else:
+                    return max(low, min(high, val))
+
+            PLAYER_RADIUS_TILES = PLAYER_RADIUS / TILE_WIDTH
+
+            tile_center_x, tile_center_y = tile_x + 0.5, tile_y + 0.5
+
+            closest_x = bound(player_x, tile_x, tile_x + 1)
+            closest_y = bound(player_y, tile_y, tile_y + 1)
+
+            distance_x, distance_y = player_x - closest_x, player_y - closest_y
+
+            distance = math.sqrt(distance_x ** 2 + distance_y ** 2)
+
+            return (distance <= PLAYER_RADIUS_TILES)
+
+        player_tile_x = int(math.floor(player_x))
+        player_tile_y = int(math.floor(player_y))
+
+        return not any([self.get_has_wall((tile_x, tile_y)) and player_collides_with(tile_x, tile_y)
+                        for tile_x in [player_tile_x - 1, player_tile_x, player_tile_x + 1]
+                        for tile_y in [player_tile_y - 1, player_tile_y, player_tile_y + 1]])
 
 class Session(yaml.YAMLObject):
     # My instances are instances of the game itself.  Conceptually, a "saved
