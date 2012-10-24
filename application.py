@@ -27,6 +27,9 @@ WHITE = 255, 255, 255
 ASPHALT_COLOR = 128, 128, 128
 PLAYER_COLOR = 255, 255, 0
 
+ASPHALT_RADIUS = 6
+PLAYER_RADIUS = 10
+
 SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 960, 640
 VIEW_SIZE = VIEW_WIDTH, VIEW_HEIGHT = 640, 640
 TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
@@ -393,11 +396,11 @@ class Viewport(yaml.YAMLObject):
                 tile_center = (self.tile_width * x - self.x + (self.tile_width // 2) + center_x,
                                self.tile_height * y - self.y + (self.tile_height // 2) + center_y)
 
-                pygame.draw.circle(surface, BLACK, tile_center, self.tile_width // 5 + 1, 0)
-                pygame.draw.circle(surface, ASPHALT_COLOR, tile_center, self.tile_width // 5, 0)
+                pygame.draw.circle(surface, BLACK, tile_center, ASPHALT_RADIUS + 1, 0)
+                pygame.draw.circle(surface, ASPHALT_COLOR, tile_center, ASPHALT_RADIUS, 0)
 
-        pygame.draw.circle(surface, BLACK, center, self.tile_width // 3 + 1, 0)
-        pygame.draw.circle(surface, PLAYER_COLOR, center, self.tile_width // 3, 0)
+        pygame.draw.circle(surface, BLACK, center, PLAYER_RADIUS + 1, 0)
+        pygame.draw.circle(surface, PLAYER_COLOR, center, PLAYER_RADIUS, 0)
 
 #   def get_scape(self):
 #       return self.scape
