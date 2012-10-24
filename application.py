@@ -25,6 +25,7 @@ BLACK = 0, 0, 0
 WHITE = 255, 255, 255
 
 ASPHALT_COLOR = 128, 128, 128
+WALL_COLOR = 128, 96, 64
 PLAYER_COLOR = 255, 255, 0
 
 ASPHALT_RADIUS = 6
@@ -37,6 +38,7 @@ TILE_SIZE = TILE_WIDTH, TILE_HEIGHT = 32, 32
 FRAMERATE = 50
 
 ASPHALT_FREQUENCY = 0.05
+WALL_FREQUENCY = 0.05
 
 class DisplayList:
     def __init__(self):
@@ -196,7 +198,11 @@ class Ambiance(yaml.YAMLObject):
 
     def __init__(self):
         self.lushness = random.random()
-        self.asphalt = random.random() < ASPHALT_FREQUENCY
+        self.wall = random.random() < WALL_FREQUENCY
+        if self.wall:
+            self.asphalt = False
+        else:
+            self.asphalt = random.random() < ASPHALT_FREQUENCY
         self.paved = False
 
 class Landscape(yaml.YAMLObject):
@@ -229,10 +235,17 @@ class Landscape(yaml.YAMLObject):
     def set_is_paved(self, spot, val):
         self.get_ambiance(spot).paved = val
 
+    def get_has_wall(self, spot):
+        return self.get_ambiance(spot).wall
+
     def try_take_asphalt(self, spot):
         took_asphalt = self.get_has_asphalt(spot)
         self.set_has_asphalt(spot, False)
         return took_asphalt
+
+    def passable(self, spot):
+        x, y = spot
+        return not self.get_has_wall((int(math.floor(x)), int(math.floor(y))))
 
 class Session(yaml.YAMLObject):
     # My instances are instances of the game itself.  Conceptually, a "saved
@@ -294,9 +307,14 @@ class Session(yaml.YAMLObject):
         # In fact, this class really shouldn't handle key presses at all.
 
     def move_player_by(self, dx, dy):
-        self.player_x += dx
-        self.player_y += dy
-        return self.player_x, self.player_y
+        old_x, old_y = self.player_x, self.player_y
+        new_x, new_y = old_x + dx, old_y + dy
+
+        if self.scape.passable((old_x, old_y)) and not self.scape.passable((new_x, new_y)):
+            return old_x, old_y
+        else:
+            self.player_x, self.player_y = new_x, new_y
+            return new_x, new_y
 
     def get_player(self):
         return self.player_x, self.player_y
@@ -382,7 +400,9 @@ class Viewport(yaml.YAMLObject):
             tile_left = self.tile_width * x - self.x + center_x
             tile_top = self.tile_height * y - self.y + center_y
 
-            if self.scape.get_is_paved(tile):
+            if self.scape.get_has_wall(tile):
+                tile_color = WALL_COLOR
+            elif self.scape.get_is_paved(tile):
                 tile_color = ASPHALT_COLOR
             else:
                 lushness = self.scape.get_lushness(tile)
